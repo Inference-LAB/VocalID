@@ -229,7 +229,8 @@ Feel free to open issues for bugs, improvement ideas, or feature requests.
 ## Author
 
 **Muhammad Khubaib Ahmad**
-AI/ML Engineer | Data Scientist | Voice Intelligence Researcher
+
+AI/ML Research Engineer | Speech and Language Intelligence
 
 - [**Portfolio:**](https://huggingface.co/spaces/Khubaib01/KhubaibAhmad_Portfolio)
 - **Email** [khubaib0.1ai@gmail.com](mailto:khubaib0.1ai@gmail.com)
