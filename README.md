@@ -233,7 +233,7 @@ Feel free to open issues for bugs, improvement ideas, or feature requests.
 AI/ML Research Engineer | Speech and Language Intelligence
 
 - [**Portfolio:**](https://huggingface.co/spaces/Khubaib01/KhubaibAhmad_Portfolio)
-- **Email** [khubaib0.1ai@gmail.com](mailto:khubaib0.1ai@gmail.com)
+- **Email** [khubaib.ahmad@inference-lab.org](mailto:khubaib.ahmad@inference-lab.org)
 - [**GitHub**](https://github.com/Khubaib8281)
 - [**LinkedIn**](https://www.linkedin.com/in/muhammad-khubaib-ahmad-)
 - [**Kaggle**](https://kaggle.com/muhammadkhubaibahmad)
