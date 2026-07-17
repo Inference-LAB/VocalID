@@ -4,10 +4,13 @@ import sounddevice as sd
 import numpy as np
 from .config import SAMPLE_RATE
 
+import soundfile as sf
+import torch
 
-def load_audio(path, target_sr=SAMPLE_RATE):
-    waveform, sr = torchaudio.load(path)
-
+def load_audio(path,target_sr=SAMPLE_RATE):
+    samples, sr = sf.read(path, dtype="float32", always_2d=True)  # (frames, channels)
+    waveform = torch.from_numpy(samples.T)  # -> (channels, frames), matches torchaudio's shape
+    return waveform, sr
     # Convert to float32
     waveform = waveform.float()
 
@@ -60,3 +63,21 @@ def record_audio(seconds=4, fs=SAMPLE_RATE):
         audio_tensor = torch.nn.functional.pad(audio_tensor, (0, pad_len))
 
     return audio_tensor
+
+def save_audio(audio_tensor, path, sample_rate=SAMPLE_RATE):
+    """
+    Save a mono waveform tensor to a WAV file.
+
+    Parameters
+    ----------
+    audio_tensor : torch.Tensor
+        Shape (1, T) or (T,)
+    path : str
+        Output WAV filename.
+    sample_rate : int
+        Sample rate.
+    """
+    if audio_tensor.ndim == 1:
+        audio_tensor = audio_tensor.unsqueeze(0)
+
+    torchaudio.save(path, audio_tensor.cpu(), sample_rate)
