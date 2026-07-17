@@ -9,9 +9,9 @@ Run: python examples/enroll_and_authenticate.py
 
 import glob
 
-from voice_verifier.enrollment import EnrollmentSession
-from voice_verifier.trainer import VoiceTrainer
-from voice_verifier.auth_adapter import VoiceAuthenticator
+from vocalid.enrollment import EnrollmentSession
+from vocalid.trainer import VoiceTrainer
+from vocalid.auth_adapter import VoiceAuthenticator
 
 DATASET_ROOT = "dataset"
 MODEL_PATH = "my_voice_model.pkl"

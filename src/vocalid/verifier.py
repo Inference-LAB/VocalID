@@ -10,7 +10,7 @@ class VoiceVerifier:
         self.extractor = EmbeddingExtractor()
 
     def verify_file(self, file_path, threshold=THRESHOLD):
-        wav = load_audio(file_path)                   # waveform tensor
+        wav,_ = load_audio(file_path)                   # waveform tensor
         emb = self.extractor.emb_waveform(wav)        # embedding as numpy
         score = self.model.predict_proba([emb])[0][1]
         verified = score >= threshold

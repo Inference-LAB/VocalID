@@ -31,7 +31,9 @@ class VoiceTrainer:
             y.append(1)
 
         for p in negative_paths:
+            print(f"Loading {p}")
             emb = self.extractor.embed_file(p)
+            print(type(emb), None if emb is None else emb.shape)
             if emb is None:
                 continue
             X.append(normalize(emb))

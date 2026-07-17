@@ -32,7 +32,17 @@ class VoiceAuthenticator:
 
     def authenticate_live(self, seconds: float = None) -> AuthenticationResult:
         from .recorder import record_one
+
         seconds = seconds or 4.0
-        audio = record_one(seconds, config.SAMPLE_RATE)
-        verified, score = self.verifier.verify_live(audio)
-        return AuthenticationResult(success=verified, confidence=score)
+
+        audio = record_one(
+        seconds,
+        config.SAMPLE_RATE
+    )
+
+        verified, score = self.verifier.verify_array(audio)
+
+        return AuthenticationResult(
+        success=verified,
+        confidence=score
+    )
