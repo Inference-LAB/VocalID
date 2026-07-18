@@ -6,7 +6,18 @@ dataset: right length, not silent, not clipped/overdriven.
 Uses audio_utils.load_audio(path) -> (tensor, sample_rate), which the
 library already needs for file-based verification.
 """
+# src/vocalid/typing_compat.py
 
+from typing import (
+    List,
+    Dict,
+    Tuple,
+    Set,
+    Optional,
+    Union,
+    Any,
+    Callable,
+)
 import numpy as np
 from .audio_utils import load_audio
 
@@ -23,7 +34,7 @@ def _to_numpy(audio):
     return np.asarray(audio).flatten()
 
 
-def check_audio(path: str) -> tuple[bool, str]:
+def check_audio(path: str) -> Tuple[bool, str]:
     """
     Returns (is_valid, reason). reason is 'ok' when valid, otherwise
     a short human-readable explanation of why it was rejected.

@@ -9,7 +9,18 @@ Keeps the on-disk dataset in the layout trainer.py expects:
 Just handles copying accepted files in with sequential, collision-free
 names - no metadata, no database.
 """
+# src/vocalid/typing_compat.py
 
+from typing import (
+    List,
+    Dict,
+    Tuple,
+    Set,
+    Optional,
+    Union,
+    Any,
+    Callable,
+)
 import os
 import shutil
 
@@ -30,7 +41,7 @@ class DatasetManager:
             raise ValueError("label must be 'positive' or 'negative'")
         return self.positive_dir if label == "positive" else self.negative_dir
 
-    def list_samples(self, label: str) -> list[str]:
+    def list_samples(self, label: str) -> List[str]:
         target_dir = self._target_dir(label)
         return [
             os.path.join(target_dir, f)

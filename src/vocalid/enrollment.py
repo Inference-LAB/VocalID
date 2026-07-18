@@ -8,7 +8,18 @@ together into one guided session:
 
 Retries a rejected clip instead of silently skipping it.
 """
+# src/vocalid/typing_compat.py
 
+from typing import (
+    List,
+    Dict,
+    Tuple,
+    Set,
+    Optional,
+    Union,
+    Any,
+    Callable,
+)
 import os
 import tempfile
 
@@ -34,7 +45,7 @@ class EnrollmentSession:
         label: str,
         count: int = 10,
         seconds: float = 5.0
-    ) -> list[str]:
+    ) -> List[str]:
 
         """
         Records and accepts `count` valid clips for
