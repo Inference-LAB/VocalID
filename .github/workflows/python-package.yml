@@ -43,4 +43,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.python-version }}
-          path: .coverage.xml
+          path: coverage.xml
