@@ -1,9 +1,15 @@
+
+
+import logging
+
 import torch
 import torchaudio
 import sounddevice as sd
 import soundfile as sf
 
 from .config import SAMPLE_RATE
+
+logger = logging.getLogger(__name__)
 
 
 def load_audio(path, target_sr=SAMPLE_RATE):
@@ -56,7 +62,7 @@ def load_audio(path, target_sr=SAMPLE_RATE):
             (0, pad_len)
         )
 
-    return waveform,sr
+    return waveform, sr
 
 
 def record_audio(
@@ -79,7 +85,7 @@ def record_audio(
         Recorded waveform with shape (1, T).
     """
 
-    print(f"Recording {duration:.1f} seconds...")
+    logger.info("Recording %.1f seconds...", duration)
 
     try:
         devices = sd.query_devices()
@@ -107,7 +113,7 @@ def record_audio(
             "Audio recording failed."
         ) from e
 
-    print("Recording complete")
+    logger.info("Recording complete")
 
     waveform = torch.from_numpy(audio.T).float()
 
