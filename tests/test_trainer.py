@@ -1,58 +1,268 @@
+
+
 import numpy as np
-from unittest.mock import patch, MagicMock
-from vocalid.trainer import VoiceTrainer
+import pytest
 
-# ------------------ Test training pipeline ------------------ #
+from unittest.mock import MagicMock, patch
+
+from vocalid.trainer import (
+    VoiceTrainer,
+    normalize,
+)
+
+
+# ---------------------------------------------------------------------
+# normalize
+# ---------------------------------------------------------------------
+
+def test_normalize_vector():
+
+    vec = np.array([3.0, 4.0])
+
+    result = normalize(vec)
+
+    assert np.allclose(
+        result,
+        np.array([0.6, 0.8]),
+    )
+
+
+def test_normalize_zero_vector():
+
+    vec = np.zeros(5)
+
+    result = normalize(vec)
+
+    assert np.array_equal(result, vec)
+
+
+# ---------------------------------------------------------------------
+# helper
+# ---------------------------------------------------------------------
+
+def make_trainer():
+
+    trainer = VoiceTrainer.__new__(VoiceTrainer)
+
+    trainer.extractor = MagicMock()
+
+    trainer.model = None
+
+    return trainer
+
+
+# ---------------------------------------------------------------------
+# train
+# ---------------------------------------------------------------------
+
+@patch("vocalid.trainer.save_model")
+@patch("vocalid.trainer.LogisticRegression")
 @patch("vocalid.trainer.EmbeddingExtractor")
-def test_training_pipeline(mock_extractor):
-    mock_instance = MagicMock()
-    # embed_file returns 192-dim embeddings
-    mock_instance.embed_file.side_effect = lambda x: np.random.rand(192)
-    mock_extractor.return_value = mock_instance
+def test_training_pipeline(
+    mock_extractor,
+    mock_lr,
+    mock_save,
+):
 
-    X_positive = ["file1.wav", "file2.wav", "file3.wav", "file4.wav", "file5.wav"]
-    X_negative = ["file6.wav", "file7.wav", "file8.wav", "file9.wav", "file10.wav"]
+    extractor = MagicMock()
+
+    extractor.embed_file.side_effect = (
+        lambda _: np.random.rand(192)
+    )
+
+    mock_extractor.return_value = extractor
+
+    model = MagicMock()
+
+    mock_lr.return_value = model
 
     trainer = VoiceTrainer()
-    trainer.train(X_positive, X_negative, save_path="dummy_model.pkl")
 
-    # Predict using embeddings
-    # X_test = X_positive + X_negative
-    # X_features = np.vstack([trainer.extractor.embed_file(x) for x in X_test])
-    # y_test = np.array([1]*5 + [0]*5)
-    # preds = trainer.model.predict(X_features)
+    positive = [
+        "p1.wav",
+        "p2.wav",
+    ]
 
-    # assert (preds == y_test).mean() >= 0.5
+    negative = [
+        "n1.wav",
+        "n2.wav",
+    ]
 
-    assert trainer.model is not None
+    path = trainer.train(
+        positive,
+        negative,
+        "dummy.pkl",
+    )
+
+    assert path == "dummy.pkl"
+
+    model.fit.assert_called_once()
+
+    mock_save.assert_called_once()
+
+    assert trainer.model == model
 
 
-# ------------------ Test save/load ------------------ #
+@patch("vocalid.trainer.save_model")
+@patch("vocalid.trainer.LogisticRegression")
 @patch("vocalid.trainer.EmbeddingExtractor")
-def test_save_and_load(mock_extractor, tmp_path):
-    mock_instance = MagicMock()
-    mock_instance.embed_file.side_effect = lambda x: np.random.rand(192)
-    mock_extractor.return_value = mock_instance
+def test_train_skips_none_embeddings(
+    mock_extractor,
+    mock_lr,
+    mock_save,
+):
 
-    X_positive = ["file1.wav", "file2.wav", "file3.wav", "file4.wav", "file5.wav"]
-    X_negative = ["file6.wav", "file7.wav", "file8.wav", "file9.wav", "file10.wav"]
+    extractor = MagicMock()
+
+    extractor.embed_file.side_effect = [
+        np.random.rand(192),
+        None,
+        np.random.rand(192),
+    ]
+
+    mock_extractor.return_value = extractor
+
+    mock_lr.return_value = MagicMock()
 
     trainer = VoiceTrainer()
-    trainer.train(X_positive, X_negative, save_path=str(tmp_path / "dummy_model.pkl"))
 
-    # Save/load test
-    save_path = tmp_path / "clf.pkl"
-    trainer.save(str(save_path))
-    trainer2 = VoiceTrainer()
-    trainer2.load(str(save_path))
+    trainer.train(
+        ["a.wav", "b.wav"],
+        ["c.wav"],
+    )
 
-    # X_test = X_positive + X_negative
-    # X_features = np.vstack([trainer.extractor.embed_file(x) for x in X_test])
+    trainer.model.fit.assert_called_once()
 
-    # preds_original = trainer.model.predict(X_features)
-    # preds_loaded = trainer2.model.predict(X_features)
 
-    # assert np.allclose(preds_original, preds_loaded)
+@patch("vocalid.trainer.EmbeddingExtractor")
+def test_train_no_embeddings(
+    mock_extractor,
+):
 
-    assert trainer.model is not None
-    assert trainer2.model is not None
+    extractor = MagicMock()
+
+    extractor.embed_file.return_value = None
+
+    mock_extractor.return_value = extractor
+
+    trainer = VoiceTrainer()
+
+    with pytest.raises(ValueError):
+
+        trainer.train(
+            ["a.wav"],
+            ["b.wav"],
+        )
+
+
+# ---------------------------------------------------------------------
+# evaluate
+# ---------------------------------------------------------------------
+
+def test_evaluate_success():
+
+    trainer = make_trainer()
+
+    trainer.model = MagicMock()
+
+    trainer.model.predict.return_value = np.array([1, 0])
+
+    trainer.extractor.embed_file.side_effect = [
+        np.random.rand(192),
+        np.random.rand(192),
+    ]
+
+    result = trainer.evaluate(
+        ["p.wav"],
+        ["n.wav"],
+    )
+
+    assert "accuracy" in result
+
+    assert "report" in result
+
+
+def test_evaluate_without_model():
+
+    trainer = make_trainer()
+
+    with pytest.raises(ValueError):
+
+        trainer.evaluate(
+            ["p.wav"],
+            ["n.wav"],
+        )
+
+
+def test_evaluate_empty_embeddings():
+
+    trainer = make_trainer()
+
+    trainer.model = MagicMock()
+
+    trainer.extractor.embed_file.return_value = None
+
+    with pytest.raises(ValueError):
+
+        trainer.evaluate(
+            ["p.wav"],
+            ["n.wav"],
+        )
+
+
+# ---------------------------------------------------------------------
+# save
+# ---------------------------------------------------------------------
+
+@patch("vocalid.trainer.save_model")
+def test_save_success(mock_save):
+
+    trainer = make_trainer()
+
+    trainer.model = MagicMock()
+
+    trainer.save("abc.pkl")
+
+    mock_save.assert_called_once_with(
+        trainer.model,
+        "abc.pkl",
+    )
+
+
+def test_save_without_model():
+
+    trainer = make_trainer()
+
+    with pytest.raises(ValueError):
+
+        trainer.save("abc.pkl")
+
+
+# ---------------------------------------------------------------------
+# load
+# ---------------------------------------------------------------------
+
+@patch("vocalid.trainer.load_model")
+def test_load_success(mock_load):
+
+    trainer = make_trainer()
+
+    model = MagicMock()
+
+    mock_load.return_value = model
+
+    trainer.load("abc.pkl")
+
+    assert trainer.model == model
+
+
+@patch("vocalid.trainer.load_model")
+def test_load_failure(mock_load):
+
+    trainer = make_trainer()
+
+    mock_load.return_value = None
+
+    with pytest.raises(ValueError):
+
+        trainer.load("abc.pkl")
